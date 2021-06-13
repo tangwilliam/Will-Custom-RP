@@ -84,8 +84,8 @@ float4 BloomCombinePassFragment (Varyings input) : SV_TARGET {
 	else {
 		lowRes = GetSource(input.screenUV).rgb;
 	}
-	float3 highRes = GetSource2(input.screenUV).rgb;
-	return float4(lowRes * _BloomIntensity + highRes, 1.0);
+	float4 highRes = GetSource2(input.screenUV);
+	return float4(lowRes * _BloomIntensity + highRes.rgb, highRes.a);
 }
 
 float4 BloomScatterPassFragment (Varyings input) : SV_TARGET {
@@ -111,9 +111,9 @@ float4 BloomScatterFinalPassFragment (Varyings input) : SV_TARGET {
 	else {
 		lowRes = GetSource(input.screenUV).rgb;
 	}
-	float3 highRes = GetSource2(input.screenUV).rgb;
-	lowRes += highRes - ApplyBloomThreshold(highRes); // 将被threshold筛出来进行Scatter的区域减掉，以尽量维持能量守恒不'Add light'。那么被Scatter扩散出到附近像素的散射模糊效果仍然存在。
-	return float4(lerp(highRes, lowRes, _BloomIntensity), 1.0);
+	float4 highRes = GetSource2(input.screenUV);
+	lowRes += highRes.rgb - ApplyBloomThreshold(highRes.rgb); // 将被threshold筛出来进行Scatter的区域减掉，以尽量维持能量守恒不'Add light'。那么被Scatter扩散出到附近像素的散射模糊效果仍然存在。
+	return float4(lerp(highRes.rgb, lowRes, _BloomIntensity), highRes.a);
 }
 
 float4 BloomHorizontalPassFragment (Varyings input) : SV_TARGET {
@@ -272,26 +272,42 @@ float3 GetColorGradedLUT( float2 uv, bool useACES = false ){
 
 // 既不做 ColorGrading 也不做 ToneMapping 的情况比较少见，所以就让这种情况变成一个单纯的拷贝好了。避免去动 C Sharp 代码的结构
 float4 ColorGradingAndToneMappingNonePassFragment (Varyings input) : SV_TARGET {
-	 float3 color = _EnableColorGrading ? GetColorGradedLUT(input.screenUV) : GetSource(input.screenUV);
-	return float4(color,1.0);
+	 float4 color = _EnableColorGrading ?  float4(GetColorGradedLUT(input.screenUV),1.0) : GetSource(input.screenUV);
+	return color;
 }
 
 float4 ColorGradingAndToneMappingACESPassFragment(Varyings input) : SV_TARGET {
-	float3 color = _EnableColorGrading ? GetColorGradedLUT(input.screenUV, true) : unity_to_ACES( GetSource(input.screenUV) );
-	color = AcesTonemap(color); // AcesTonemap()和 unity_to_ACES()都来自官方代码。注意 unity_to_ACES()是为了将RGB转换的到ACES所需的色彩空间ACES2065-1。它是一个3x3的矩阵，主要效果是给红通道(ACES空间中的第一个通道，也许也叫红通道)较多地混杂了绿色和蓝色，绿色和蓝色值也少量变化。
-	return float4(color,1.0);
+	float4 color = 0.0;
+	if(_EnableColorGrading){
+		color = float4(GetColorGradedLUT(input.screenUV, true),1.0);
+	}else{
+		color = GetSource(input.screenUV);
+		color.rgb = unity_to_ACES(color.rgb);
+	}
+	color.rgb = AcesTonemap(color.rgb); // AcesTonemap()和 unity_to_ACES()都来自官方代码。注意 unity_to_ACES()是为了将RGB转换的到ACES所需的色彩空间ACES2065-1。它是一个3x3的矩阵，主要效果是给红通道(ACES空间中的第一个通道，也许也叫红通道)较多地混杂了绿色和蓝色，绿色和蓝色值也少量变化。
+	return color;
 }
 
 float4 ColorGradingNeutralPassFragment (Varyings input) : SV_TARGET {
-	float3 color = _EnableColorGrading ? GetColorGradedLUT(input.screenUV) : GetSource(input.screenUV);
-	color = NeutralTonemap(color);
-	return float4(color, 1.0);
+	float4 color = 0.0;
+	if(_EnableColorGrading){
+		color = float4(GetColorGradedLUT(input.screenUV, true),1.0);
+	}else{
+		color = GetSource(input.screenUV);
+	}
+	color.rgb = NeutralTonemap(color.rgb);
+	return color;
 }
 
 float4 ColorGradingReinhardPassFragment (Varyings input) : SV_TARGET {
-	float3 color = _EnableColorGrading ? GetColorGradedLUT(input.screenUV) : GetSource(input.screenUV);
-	color /= color + 1.0;
-	return float4(color, 1.0);
+	float4 color = 0.0;
+	if(_EnableColorGrading){
+		color = float4(GetColorGradedLUT(input.screenUV, true),1.0);
+	}else{
+		color = GetSource(input.screenUV);
+	}
+	color.rgb /= color.rgb + 1.0;
+	return color;
 }
 
 float3 ApplyColorGradingLUT( float3 color ){

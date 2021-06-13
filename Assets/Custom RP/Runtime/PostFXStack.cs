@@ -318,7 +318,7 @@ public partial class PostFXStack
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         buffer.SetGlobalTexture(fxSourceId, from);
-        buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);
         buffer.DrawProcedural(
             Matrix4x4.identity, settings.Material, (int)pass,

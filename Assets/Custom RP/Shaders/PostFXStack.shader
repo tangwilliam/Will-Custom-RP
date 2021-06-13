@@ -78,8 +78,12 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
         
+        //------------------------------
+        // 都可以作为Final Pass 的 :  Tone Mapping / No Tone Mapping / Final(Enable Color Grade LUT)
 		Pass {
 			Name "Color Grading No ToneMapping"
+
+            Blend One OneMinusSrcAlpha
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -89,6 +93,8 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		}
         Pass {
 			Name "Color Grading ACES ToneMapping"
+
+            Blend One OneMinusSrcAlpha
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -98,6 +104,8 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		}
         Pass {
 			Name "Color Grading Neutral"
+
+            Blend One OneMinusSrcAlpha
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -108,6 +116,8 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		
 		Pass {
 			Name "Color Grading Reinhard"
+
+            Blend One OneMinusSrcAlpha
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -116,7 +126,9 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
         Pass {
-			Name "Final Pass"
+			Name "Final"
+
+            Blend One OneMinusSrcAlpha
 			
 			HLSLPROGRAM
 				#pragma target 3.5
