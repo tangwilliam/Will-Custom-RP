@@ -9,6 +9,12 @@ public partial class CameraRenderer
     //------------------------------
     // Variables
 
+    static ShaderTagId
+    s_UnlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
+    s_LitShaderTagId = new ShaderTagId("CustomLit");
+    static int s_FrameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+    static CameraSettings s_DefaultCameraSettings = new CameraSettings();
+
     const string m_BufferName = "Render Camera";
 
     ScriptableRenderContext m_Context;
@@ -17,15 +23,12 @@ public partial class CameraRenderer
 
     CullingResults m_CullingResults;
 
-    static ShaderTagId 
-        s_UnlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
-        s_LitShaderTagId = new ShaderTagId("CustomLit");
-    static int s_FrameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
-
     Lighting m_Lighting = new Lighting();
     PostFXStack m_PostFXStack = new PostFXStack();
 
     bool m_UseHDR;
+
+    
 
     //------------------------------
     // Methods
@@ -118,6 +121,8 @@ public partial class CameraRenderer
     {
         m_Context = context;
         m_Camera = camera;
+        var crpCamera = m_Camera.GetComponent<CustomRenderPipelineCamera>(); // todo: 优化为不要每帧GetComponent()
+        CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : s_DefaultCameraSettings;
         m_UseHDR = camera.allowHDR && useHDR;
 
         PrepareBuffer(); // 在使用CommandBuffer之前，为它准备好名字。以便在FrameDebugger或Profiler中调试跟踪。不放在后面的Setup()中是因为要让编辑器下逐相机命名，但build则不这么做。
@@ -131,7 +136,7 @@ public partial class CameraRenderer
         m_CommondBuffer.BeginSample(m_BufferName);
         ExecuteCommandBuffer();
         m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
-        m_PostFXStack.Setup(m_Context, m_Camera, m_UseHDR, postFXSettings, colorLUTResolution);
+        m_PostFXStack.Setup(m_Context, m_Camera, m_UseHDR, postFXSettings, colorLUTResolution, cameraSettings.finalBlendMode);
         m_CommondBuffer.EndSample(m_BufferName);
 
         Setup(); // 根据相机参数设置绘制所需的变量，并将 PrepareBuffer()时获取到的名字设置给 m_CommondBuffer.BeginSample(),以便调试

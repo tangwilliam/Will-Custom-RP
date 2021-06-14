@@ -71,7 +71,7 @@ float4 UnlitPassFragment( Varyings input ):SV_TARGET{
 #if defined(_CLIPPING)
     clip( color.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Cutoff) );
 #endif
-
+    color.a = GetFinalAlpha(color.a);
     return color;
 }
 

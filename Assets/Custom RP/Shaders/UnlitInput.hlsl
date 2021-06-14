@@ -86,5 +86,12 @@ float3 GetEmission (InputConfig c) {
 	return GetBase(c).rgb;
 }
 
+// 该函数作用：让alphaTest的alpha输出到RenderTarget时也正确
+// 为了让半透RT叠加到已有FrameBuffer上正确，alpha 混合使用了 One OneMinusSrcAlpha
+// alphaTest不同于opaque材质于alpha不等于1，因为alpha要用来判断clip()。对于FrameBuffer本身alpha为0的情况，如果直接将alpha混合上去很多时候会得到小于1的alpha，这块区域最终会变成半透，但这不是alphaTest要的结果。
+float GetFinalAlpha(float alpha){
+	return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
+}
+
 
 #endif

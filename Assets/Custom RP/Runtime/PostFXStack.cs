@@ -53,6 +53,9 @@ public partial class PostFXStack
         colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC"),
         enableColorGradingId = Shader.PropertyToID("_EnableColorGrading");
 
+    int
+        finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
+        finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
     CommandBuffer buffer = new CommandBuffer
     {
@@ -64,6 +67,8 @@ public partial class PostFXStack
     Camera camera;
 
     PostFXSettings settings;
+
+    CameraSettings.FinalBlendMode finalBlendMode;
 
     int bloomPyramidId;
 
@@ -82,7 +87,7 @@ public partial class PostFXStack
     }
 
     public void Setup(
-        ScriptableRenderContext context, Camera camera, bool useHDR, PostFXSettings settings, int colorLUTResolution
+        ScriptableRenderContext context, Camera camera, bool useHDR, PostFXSettings settings, int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode
     )
     {
         this.context = context;
@@ -91,6 +96,7 @@ public partial class PostFXStack
         this.settings =
             camera.cameraType <= CameraType.SceneView ? settings : null;
         this.colorLUTResolution = colorLUTResolution;
+        this.finalBlendMode = finalBlendMode;
         ApplySceneViewState();
     }
 
@@ -223,6 +229,10 @@ public partial class PostFXStack
 
         Pass pass = (int)settings.toneMappingSettings.mode + Pass.ColorGradingAndToneMappingNone;
 
+        // 根据是否需要混合到已有frameBuffer上，设置 final Pass 的混合模式。目前只有 colorGradingToneMapping相关Pass能作为 finalPass
+        buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
+        buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
+
         if (enableColorGrading)
         {
             int lutWidth = colorLUTResolution * colorLUTResolution;
@@ -318,7 +328,9 @@ public partial class PostFXStack
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         buffer.SetGlobalTexture(fxSourceId, from);
-        buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+        buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, 
+            finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, 
+            RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);
         buffer.DrawProcedural(
             Matrix4x4.identity, settings.Material, (int)pass,

@@ -80,10 +80,11 @@ Shader "Hidden/Custom RP/Post FX Stack" {
         
         //------------------------------
         // 都可以作为Final Pass 的 :  Tone Mapping / No Tone Mapping / Final(Enable Color Grade LUT)
+		// 用于叠加别人的相机的clearColor必须设置为黑色，因为颜色也是 One OneMinusSrcAlpha了。属于Additive类型。否则背景部分本该没有颜色，却叠加了clearColor的颜色。
 		Pass {
 			Name "Color Grading No ToneMapping"
 
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -94,7 +95,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
         Pass {
 			Name "Color Grading ACES ToneMapping"
 
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -105,7 +106,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
         Pass {
 			Name "Color Grading Neutral"
 
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -117,7 +118,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		Pass {
 			Name "Color Grading Reinhard"
 
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
@@ -128,7 +129,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
         Pass {
 			Name "Final"
 
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
