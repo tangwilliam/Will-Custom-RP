@@ -5,6 +5,10 @@ float3 IncomingLight (Surface surface, Light light) {
 	return saturate(dot(surface.normal, light.direction) * light.attenuation ) * light.color;
 }
 
+bool RenderingLayersOverlap(Surface surface, Light light){
+	return ( surface.renderingLayerMask & light.renderingLayerMask ) != 0;
+}
+
 // 将光照计算拆成 IncomingLight()的能量(并考虑入射光线与入射平面的夹角带来的能量衰减) 和 BRDF， 是符合渲染方程的
 float3 GetLighting (Surface surface, BRDF brdf, Light light) {
 	return IncomingLight(surface, light) * DirectBRDF(surface, brdf, light);
@@ -18,17 +22,26 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi) {
 	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular );  
 
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		color += GetLighting(surfaceWS, brdf, GetDirectionalLight(i, surfaceWS, shadowData));
+		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
+		if( RenderingLayersOverlap( surfaceWS, light ) ){
+			color += GetLighting(surfaceWS, brdf, light);
+		}
 	}
 
 	#if defined(_LIGHTS_PER_OBJECT)
 		for(int j = 0; j < min( unity_LightData.y, 8 ); j++){ // How many valid other lights there are depends on lihgts in lightIndexMap calculated by Unity per Object.
 			int newIndex = unity_LightIndices[ (uint)j/4 ][ (uint)j%4 ];
-			color += GetLighting(surfaceWS, brdf, GetOtherLight(newIndex, surfaceWS, shadowData));
+			Light light =  GetOtherLight(newIndex, surfaceWS, shadowData);
+			if( RenderingLayersOverlap(surfaceWS, light)){
+				color += GetLighting(surfaceWS, brdf, light);
+			}
 		}
 	#else
 		for(int j = 0; j < GetOtherLightCount(); j++){ // How many valid other lights there are depends on visibleLights from C#, which changes with cullingResult at runtime.
-			color += GetLighting(surfaceWS, brdf, GetOtherLight(j, surfaceWS, shadowData));
+			Light light = GetOtherLight(j, surfaceWS, shadowData);
+			if( RenderingLayersOverlap(surfaceWS, light)){
+				color += GetLighting(surfaceWS, brdf, light );
+			}
 		}
 	#endif
 

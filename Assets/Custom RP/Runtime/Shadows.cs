@@ -205,7 +205,11 @@ public class Shadows
     {
 
         ShadowedDirectionalLight light = m_ShadowedDirectionalLights[index];
-        var shadowDrawSettings = new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex);
+        var shadowDrawSettings =
+            new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex)
+            {
+                useRenderingLayerMaskTest = true
+            };
 
         int cascadeCount = m_ShadowSettings.directional.cascadeCount;
         Vector3 cascadeRatios = m_ShadowSettings.directional.CascadeRatios;
@@ -290,7 +294,11 @@ public class Shadows
     {
 
         ShadowedOtherLight light = m_ShadowedOtherLights[index];
-        var shadowDrawSettings = new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex);
+        var shadowDrawSettings =
+            new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex)
+            {
+                useRenderingLayerMaskTest = true
+            };
 
         // 求取光的几何数据：每盏光的光源空间VP矩阵、级联splitSphere
         // 求取splitData 以在投射阴影时只调用相应空间内的几何体的 Shadow Cast Pass
@@ -325,7 +333,11 @@ public class Shadows
     {
 
         ShadowedOtherLight light = m_ShadowedOtherLights[index];
-        var shadowDrawSettings = new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex);
+        var shadowDrawSettings =
+            new ShadowDrawingSettings(m_CullingResults, light.visibleLightIndex)
+            {
+                useRenderingLayerMaskTest = true
+            };
 
         float texelSize = 2.0f / (float)tileSize; // The field of view for cubemap faces is always 90°
         float filterSize = texelSize * (int)m_ShadowSettings.otherLight.filter + 1f; // filter越大，单像素采样ShadowMap时涉及的像素范围越大

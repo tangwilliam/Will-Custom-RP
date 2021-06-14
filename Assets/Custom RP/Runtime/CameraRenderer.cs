@@ -123,6 +123,11 @@ public partial class CameraRenderer
         m_Camera = camera;
         var crpCamera = m_Camera.GetComponent<CustomRenderPipelineCamera>(); // todo: 优化为不要每帧GetComponent()
         CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : s_DefaultCameraSettings;
+        if (cameraSettings.overridePostFX)
+        {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
+
         m_UseHDR = camera.allowHDR && useHDR;
 
         PrepareBuffer(); // 在使用CommandBuffer之前，为它准备好名字。以便在FrameDebugger或Profiler中调试跟踪。不放在后面的Setup()中是因为要让编辑器下逐相机命名，但build则不这么做。

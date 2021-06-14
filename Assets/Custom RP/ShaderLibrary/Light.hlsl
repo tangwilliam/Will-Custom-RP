@@ -22,6 +22,7 @@ struct Light {
     float3 color;
     float3 direction;
     float attenuation;
+    uint renderingLayerMask;
 };
 
 int GetDirectionalLightCount(){
