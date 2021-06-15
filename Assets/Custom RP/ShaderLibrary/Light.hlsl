@@ -7,13 +7,13 @@
 CBUFFER_START(_CustomLight)
     int _DirectionalLightCount;
     float4 _DirectionalLightColors[MAX_DIRECTIONAL_LIGHT_COUNT];
-    float4 _DirectionalLightDirections[MAX_DIRECTIONAL_LIGHT_COUNT];
+    float4 _DirectionalLightDirectionsAndMasks[MAX_DIRECTIONAL_LIGHT_COUNT];
     float4 _DirectionalLightShadowData[MAX_DIRECTIONAL_LIGHT_COUNT];
 
     int _OtherLightCount;
     float4 _OtherLightColors[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
-    float4 _OtherLightDirections[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightDirectionsAndMasks[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightSpotAngles[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightShadowData[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
@@ -59,9 +59,10 @@ Light GetDirectionalLight(int index , Surface surfaceWS, ShadowData shadowData){
     
     Light light;
     light.color = _DirectionalLightColors[index].rgb;
-    light.direction = _DirectionalLightDirections[index].xyz;
+    light.direction = _DirectionalLightDirectionsAndMasks[index].xyz;
     DirectionalShadowData dirShadowData = GetDirectionalShadowData(index, shadowData);
     light.attenuation = GetDirectionalShadowAttenuation( dirShadowData, shadowData , surfaceWS);
+    light.renderingLayerMask = asuint(_DirectionalLightDirectionsAndMasks[index].w);
     return light;
 }
 
@@ -73,7 +74,7 @@ Light GetOtherLight(int index, Surface surfaceWS, ShadowData shadowData){
     float3 ray =  position - surfaceWS.position.xyz;
     light.direction = normalize(ray);
 
-    float3 spotDirection = _OtherLightDirections[index].xyz;
+    float3 spotDirection = _OtherLightDirectionsAndMasks[index].xyz;
     float distanceSquare = dot(ray, ray) ;
     float strengthAtten = saturate( 1.0 / max(distanceSquare ,0.0001 ) );
     float rangeAtten = Square( max( 0, 1.0 - Square(distanceSquare * _OtherLightPositions[index].w) ));
@@ -86,6 +87,7 @@ Light GetOtherLight(int index, Surface surfaceWS, ShadowData shadowData){
     float shadowAtten = GetOtherLightShadowAttenuation( otherLightShadowData, shadowData, surfaceWS );
     
     light.attenuation = spotAtten * strengthAtten * rangeAtten * shadowAtten;
+    light.renderingLayerMask = asuint(_OtherLightDirectionsAndMasks[index].w);
     return light;
 }
 

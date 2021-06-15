@@ -13,24 +13,24 @@ class Lighting
     static int
         s_DirLightCountId = Shader.PropertyToID("_DirectionalLightCount"),
         s_DirLightColorsId = Shader.PropertyToID("_DirectionalLightColors"),
-        s_DirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections"),
+        s_DirLightDirectionsAndMasksId = Shader.PropertyToID("_DirectionalLightDirectionsAndMasks"),
         s_DirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData"),
 
         s_OtherLightCountId = Shader.PropertyToID("_OtherLightCount"),
         s_OtherLightColorsId = Shader.PropertyToID("_OtherLightColors"),
         s_OtherLightPositionsId = Shader.PropertyToID("_OtherLightPositions"),
-        s_OtherLightDirectionsId = Shader.PropertyToID("_OtherLightDirections"),
+        s_OtherLightDirectionsAndMasksId = Shader.PropertyToID("_OtherLightDirectionsAndMasks"),
         s_OtherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"),
         s_OtherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
 
     static Vector4[]
         s_DirLightColors = new Vector4[m_MaxDirLightCount],
-        s_DirLightDirections = new Vector4[m_MaxDirLightCount],
+        s_DirLightDirectionsAndMasks = new Vector4[m_MaxDirLightCount],
         s_DirLightShadowData = new Vector4[m_MaxDirLightCount],
 
         s_OtherLightColors = new Vector4[m_MaxOtherLightCount],
         s_OtherLightPositions = new Vector4[m_MaxOtherLightCount],
-        s_OtherLightDirections = new Vector4[m_MaxOtherLightCount],
+        s_OtherLightDirectionsAndMasks = new Vector4[m_MaxOtherLightCount],
         s_OtherLightSpotAngles = new Vector4[m_MaxOtherLightCount],
         s_OtherLightShadowData = new Vector4[m_MaxOtherLightCount];
 
@@ -70,40 +70,45 @@ class Lighting
     /// <param name="index"></param>
     /// <param name="visibleIndex"></param>
     /// <param name="visibleLight"></param>
-    private void SetupDirectionalLight( int index , int visibleIndex , ref VisibleLight visibleLight )
+    private void SetupDirectionalLight( int index , int visibleIndex , ref VisibleLight visibleLight, Light light )
     {
         s_DirLightColors[index] = visibleLight.finalColor;
         // Unity的坐标系中的习惯是模型空间的Forward是z正方向，即模型空间中物体是面向z正方向的。
         // 于是对于直射光源这种不存在缩放的物体，世界空间矩阵的第三列就正好是Forward在世界空间的朝向。
-        s_DirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        s_DirLightDirectionsAndMasks[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        s_DirLightDirectionsAndMasks[index].w = light.renderingLayerMask.ReinterpretAsFloat();
 
-        s_DirLightShadowData[index] = m_Shadows.ReserveDirectionalShadows( visibleLight.light, visibleIndex);
+        s_DirLightShadowData[index] = m_Shadows.ReserveDirectionalShadows( light, visibleIndex);
     }
 
-    private void SetupPointLight( int index, int visibleIndex, ref VisibleLight visibleLight)
+    private void SetupPointLight( int index, int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         s_OtherLightColors[index] = visibleLight.finalColor;
+
+        s_OtherLightDirectionsAndMasks[index] = Vector4.zero; // 对点光源来说方向没有意义
+        s_OtherLightDirectionsAndMasks[index].w = light.renderingLayerMask.ReinterpretAsFloat();
+
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
         position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range , 0.00001f);
         s_OtherLightPositions[index] = position;
         s_OtherLightSpotAngles[index] = new Vector4(0, 1); // 这个值使Shader中不被SpotAtten影响
-        s_OtherLightShadowData[index] = m_Shadows.ReserveOtherLightShadows(visibleLight.light, visibleIndex);
+        s_OtherLightShadowData[index] = m_Shadows.ReserveOtherLightShadows(light, visibleIndex);
     }
 
-    private void SetupSpotLight(int index, int visibleIndex, ref VisibleLight visibleLight)
+    private void SetupSpotLight(int index, int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         s_OtherLightColors[index] = visibleLight.finalColor;
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
         position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         s_OtherLightPositions[index] = position;
-        s_OtherLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        s_OtherLightDirectionsAndMasks[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        s_OtherLightDirectionsAndMasks[index].w = light.renderingLayerMask.ReinterpretAsFloat();
 
-        Light light = visibleLight.light;
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
         float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
         s_OtherLightSpotAngles[index] = new Vector4( angleRangeInv, -outerCos * angleRangeInv );
-        s_OtherLightShadowData[index] = m_Shadows.ReserveOtherLightShadows(visibleLight.light, visibleIndex);
+        s_OtherLightShadowData[index] = m_Shadows.ReserveOtherLightShadows(light, visibleIndex);
     }
 
     /// <summary>
@@ -131,6 +136,7 @@ class Lighting
         {
             int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
+            Light light = visibleLight.light;
 
             switch( visibleLights[i].lightType)
             {
@@ -138,7 +144,7 @@ class Lighting
                     {
                         if( dirLightCount < m_MaxDirLightCount)
                         {
-                            SetupDirectionalLight(dirLightCount++,i, ref visibleLight); 
+                            SetupDirectionalLight(dirLightCount++,i, ref visibleLight, light); 
                         }
                     }break;
                 case LightType.Point:
@@ -146,7 +152,7 @@ class Lighting
                         if(otherLightCount < m_MaxOtherLightCount)
                         {
                             newIndex = otherLightCount;
-                            SetupPointLight(otherLightCount++,i, ref visibleLight);
+                            SetupPointLight(otherLightCount++,i, ref visibleLight, light);
                         }
                     }break;
                 case LightType.Spot:
@@ -154,7 +160,7 @@ class Lighting
                         if(otherLightCount < m_MaxOtherLightCount)
                         {
                             newIndex = otherLightCount;
-                            SetupSpotLight(otherLightCount++,i, ref visibleLight);
+                            SetupSpotLight(otherLightCount++,i, ref visibleLight, light);
                         }
                     }break;
                 default:break;
@@ -187,7 +193,7 @@ class Lighting
         if(dirLightCount > 0)
         {
             m_CommandBuffer.SetGlobalVectorArray(s_DirLightColorsId, s_DirLightColors);
-            m_CommandBuffer.SetGlobalVectorArray(s_DirLightDirectionsId, s_DirLightDirections);
+            m_CommandBuffer.SetGlobalVectorArray(s_DirLightDirectionsAndMasksId, s_DirLightDirectionsAndMasks);
             m_CommandBuffer.SetGlobalVectorArray(s_DirLightShadowDataId, s_DirLightShadowData);
         }
         m_CommandBuffer.SetGlobalInt(s_OtherLightCountId, otherLightCount);
@@ -195,7 +201,7 @@ class Lighting
         {
             m_CommandBuffer.SetGlobalVectorArray(s_OtherLightColorsId, s_OtherLightColors);
             m_CommandBuffer.SetGlobalVectorArray(s_OtherLightPositionsId, s_OtherLightPositions);
-            m_CommandBuffer.SetGlobalVectorArray(s_OtherLightDirectionsId, s_OtherLightDirections);
+            m_CommandBuffer.SetGlobalVectorArray(s_OtherLightDirectionsAndMasksId, s_OtherLightDirectionsAndMasks);
             m_CommandBuffer.SetGlobalVectorArray(s_OtherLightSpotAnglesId, s_OtherLightSpotAngles);
             m_CommandBuffer.SetGlobalVectorArray(s_OtherLightShadowDataId, s_OtherLightShadowData);
         }

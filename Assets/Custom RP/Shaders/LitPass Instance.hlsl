@@ -117,6 +117,7 @@ float4 LitPassFragment( Varyings input ):SV_TARGET{
     surface.fresnelStrength = GetFresnel();
     surface.dither = InterleavedGradientNoise( config.fragment.positionSS.xy, 0 ); // Function from Core RP Library
     surface.position = input.positionWS;
+    surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
 #if defined(_PREMULTIPLY_ALPHA)
     BRDF brdf = GetBRDF(surface,true);

@@ -42,4 +42,6 @@ float4 _ProjectionParams;
 
 float3 _WorldSpaceCameraPos;
 
+float4 unity_RenderingLayer;
+
 #endif
