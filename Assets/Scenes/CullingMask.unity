@@ -435,6 +435,7 @@ GameObject:
   - component: {fileID: 108829591}
   - component: {fileID: 108829590}
   - component: {fileID: 108829589}
+  - component: {fileID: 108829592}
   m_Layer: 0
   m_Name: Main Camera (1)
   m_TagString: MainCamera
@@ -507,6 +508,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 37.916, y: 0, z: 0}
+--- !u!114 &108829592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 108829588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e200daaec4d239d4bb6819a468b451b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings:
+    renderingLayerMask: 2
+    maskLights: 1
+    overridePostFX: 0
+    postFXSettings: {fileID: 0}
+    finalBlendMode:
+      source: 1
+      destination: 0
 --- !u!1 &120431879
 GameObject:
   m_ObjectHideFlags: 0
@@ -669,7 +690,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 3
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 7b2ea84ce09f426469816059ddc4c768, type: 2}
@@ -2881,7 +2902,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 0.9671187, g: 1, b: 0.023584902, a: 1}
+  m_Color: {r: 0.9678714, g: 1, b: 0, a: 1}
   m_Intensity: 10
   m_Range: 10
   m_SpotAngle: 30.656494
@@ -2920,7 +2941,7 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 0
+  m_RenderingLayerMask: 2147483647
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
@@ -3371,6 +3392,7 @@ GameObject:
   - component: {fileID: 1664088470}
   - component: {fileID: 1664088469}
   - component: {fileID: 1664088468}
+  - component: {fileID: 1664088471}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3443,6 +3465,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 37.916, y: 0, z: 0}
+--- !u!114 &1664088471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664088467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e200daaec4d239d4bb6819a468b451b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings:
+    renderingLayerMask: -1
+    maskLights: 0
+    overridePostFX: 0
+    postFXSettings: {fileID: 0}
+    finalBlendMode:
+      source: 1
+      destination: 0
 --- !u!1 &1690134753
 GameObject:
   m_ObjectHideFlags: 0

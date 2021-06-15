@@ -69,7 +69,7 @@ public partial class CameraRenderer
         return false;
     }
 
-    protected void DrawVisibleGeometry( bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject )
+    protected void DrawVisibleGeometry( bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, int renderingLayerMask )
     {
         PerObjectData lightsPerObjectFlags = useLightsPerObject ? (PerObjectData.LightIndices | PerObjectData.LightData) : PerObjectData.None;
 
@@ -89,7 +89,7 @@ public partial class CameraRenderer
         // 这里第0个Pass已经是"SRPDefaultUnlit"，于是设置新的Pass从第1个开始。
         // SetShaderPassName为Pass设置的index顺序，并不影响物体绘制顺序。编辑器中实测仍以sortingSettings为主（比如由近到远）。
         drawingSettings.SetShaderPassName(1, s_LitShaderTagId);
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, renderingLayerMask : (uint)renderingLayerMask); // renderingLayerMask的优势是更灵活，一个物体可以同时属于多个layer。然而要注意要裁剪大量物体时，还是CullingMask效率更高，因为在Cull阶段裁掉，就不再需要后续其他操作了。
         m_Context.DrawRenderers(m_CullingResults, ref drawingSettings, ref filteringSettings);
 
         m_Context.DrawSkybox(m_Camera);
@@ -140,13 +140,14 @@ public partial class CameraRenderer
 
         m_CommondBuffer.BeginSample(m_BufferName);
         ExecuteCommandBuffer();
-        m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
+        int lightsMask = cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1;
+        m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject, lightsMask ); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
         m_PostFXStack.Setup(m_Context, m_Camera, m_UseHDR, postFXSettings, colorLUTResolution, cameraSettings.finalBlendMode);
         m_CommondBuffer.EndSample(m_BufferName);
 
         Setup(); // 根据相机参数设置绘制所需的变量，并将 PrepareBuffer()时获取到的名字设置给 m_CommondBuffer.BeginSample(),以便调试
 
-        DrawVisibleGeometry( useDynamicBatching, useGPUInstancing, useLightsPerObject );
+        DrawVisibleGeometry( useDynamicBatching, useGPUInstancing, useLightsPerObject, cameraSettings.renderingLayerMask );
         DrawUnsupportedShaders();
         DrawGizmosBeforeFX();
         if (m_PostFXStack.IsActive)

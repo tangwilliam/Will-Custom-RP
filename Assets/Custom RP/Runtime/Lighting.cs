@@ -44,13 +44,13 @@ class Lighting
    
     private Shadows m_Shadows = new Shadows();
 
-    public void Setup( ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject)
+    public void Setup( ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject, int renderingLayerMask)
     {
         m_CullingResults = cullingResults;
 
         m_CommandBuffer.BeginSample(m_BufferName);
         m_Shadows.Setup( context, cullingResults, shadowSettings );
-        SetupLights( useLightsPerObject ); 
+        SetupLights( useLightsPerObject, renderingLayerMask ); 
         m_Shadows.Render(); 
         m_CommandBuffer.EndSample(m_BufferName);
         context.ExecuteCommandBuffer(m_CommandBuffer);
@@ -114,7 +114,7 @@ class Lighting
     /// <summary>
     /// 设置光的颜色、方向等给GPU，并传递光的索引用于后续采样Shadowmap（让用于投射阴影的m_ShadowedDirectionalLights[] 和用于Shader中采样的 s_DirLightShadowData[]的每个item都对应同一盏光）
     /// </summary>
-    private void SetupLights( bool useLightsPerObject )
+    private void SetupLights( bool useLightsPerObject, int renderingLayerMask )
     {
         // LightsPerObject 的原理：
         // GetLightIndexMap() 返回CullingResult包含的所有光的IndexMap，indexMap[i]对应的是其中第i个光，
@@ -137,34 +137,40 @@ class Lighting
             int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
             Light light = visibleLight.light;
-
-            switch( visibleLights[i].lightType)
+            if((light.renderingLayerMask & renderingLayerMask )!= 0)
             {
-                case LightType.Directional:
-                    {
-                        if( dirLightCount < m_MaxDirLightCount)
+                switch (visibleLights[i].lightType)
+                {
+                    case LightType.Directional:
                         {
-                            SetupDirectionalLight(dirLightCount++,i, ref visibleLight, light); 
+                            if (dirLightCount < m_MaxDirLightCount)
+                            {
+                                SetupDirectionalLight(dirLightCount++, i, ref visibleLight, light);
+                            }
                         }
-                    }break;
-                case LightType.Point:
-                    {
-                        if(otherLightCount < m_MaxOtherLightCount)
+                        break;
+                    case LightType.Point:
                         {
-                            newIndex = otherLightCount;
-                            SetupPointLight(otherLightCount++,i, ref visibleLight, light);
+                            if (otherLightCount < m_MaxOtherLightCount)
+                            {
+                                newIndex = otherLightCount;
+                                SetupPointLight(otherLightCount++, i, ref visibleLight, light);
+                            }
                         }
-                    }break;
-                case LightType.Spot:
-                    {
-                        if(otherLightCount < m_MaxOtherLightCount)
+                        break;
+                    case LightType.Spot:
                         {
-                            newIndex = otherLightCount;
-                            SetupSpotLight(otherLightCount++,i, ref visibleLight, light);
+                            if (otherLightCount < m_MaxOtherLightCount)
+                            {
+                                newIndex = otherLightCount;
+                                SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
+                            }
                         }
-                    }break;
-                default:break;
+                        break;
+                    default: break;
+                }
             }
+            
 
             if (useLightsPerObject)
             {
