@@ -26,11 +26,11 @@ MonoBehaviour:
   toneMappingSettings:
     mode: 1
   colorAdjustments:
-    eanbleColorAdjust: 0
+    eanbleColorAdjust: 1
     postExposure: 0
-    contrast: 0
+    contrast: -1.9
     colorFilter: {r: 0.995283, g: 1, b: 0.99698496, a: 1}
-    hueShift: 0
+    hueShift: -40
     saturation: 0
   whiteBalance:
     temperature: 0

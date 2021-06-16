@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 public partial class CustomRenderPipeline:RenderPipeline
 {
-    protected CameraRenderer m_CameraRenderer = new CameraRenderer();
+    protected CameraRenderer m_CameraRenderer;
 
     bool m_UseDynamicBatching = true;
     bool m_UseGPUInstancing = true;
@@ -13,12 +13,13 @@ public partial class CustomRenderPipeline:RenderPipeline
     bool m_UseLightsPerObject = false;
     bool m_UseHDR = true;
 
-    ShadowSettings m_ShadowSettings = default;
-    PostFXSettings m_PostFXSettings = default;
+    ShadowSettings m_ShadowSettings;
+    PostFXSettings m_PostFXSettings;
 
     int m_ColorLUTResolution;
 
-    public CustomRenderPipeline( bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatching, bool useLightsPerObject, bool useHDR ,ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution )
+    public CustomRenderPipeline( bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatching, bool useLightsPerObject, 
+        bool useHDR ,ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution, Shader cameraRendererShader )
     {
         m_UseDynamicBatching = useDynamicBatching;
         m_UseGPUInstancing = useGPUInstancing;
@@ -32,6 +33,8 @@ public partial class CustomRenderPipeline:RenderPipeline
         GraphicsSettings.useScriptableRenderPipelineBatching = m_UseSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
 
+        m_CameraRenderer = new CameraRenderer(cameraRendererShader);
+
         InitializeForEditor();
     }
 
@@ -40,7 +43,15 @@ public partial class CustomRenderPipeline:RenderPipeline
 
         foreach( Camera camera in cameras)
         {
-            m_CameraRenderer.Render(context, camera, m_UseDynamicBatching, m_UseGPUInstancing, m_UseLightsPerObject , m_UseHDR,m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
+            m_CameraRenderer.Render(context, camera, m_UseDynamicBatching, m_UseGPUInstancing, m_UseLightsPerObject , m_UseHDR,m_ShadowSettings, 
+                m_PostFXSettings, m_ColorLUTResolution);
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        DisposeForEditor();
+        m_CameraRenderer.Dispose();
     }
 }

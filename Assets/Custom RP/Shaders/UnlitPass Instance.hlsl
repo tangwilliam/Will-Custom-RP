@@ -72,6 +72,9 @@ float4 UnlitPassFragment( Varyings input ):SV_TARGET{
     clip( color.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Cutoff) );
 #endif
     color.a = GetFinalAlpha(color.a);
+
+    color = float4( config.fragment.bufferDepth.xxx / 20.0, 1.0);  //test
+
     return color;
 }
 

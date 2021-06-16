@@ -44,4 +44,7 @@ float3 _WorldSpaceCameraPos;
 
 float4 unity_RenderingLayer;
 
+float4 _ScreenParams;
+float4 _ZBufferParams;
+
 #endif

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using UnityEngine;
 
 [Serializable]
 public class CameraSettings
@@ -18,9 +19,12 @@ public class CameraSettings
     /// </summary>
     public bool maskLights = false;
 
-    public bool overridePostFX = false;
-    public PostFXSettings postFXSettings = default;
+    public bool enablePostFX = true;
+    public PostFXSettings postFXSettings = null;
+    public bool useDepthTexture = false;
 
+    [Range(0.01f, 1.0f)]
+    public float renderTargetScale = 1.0f;
 
     [Serializable]
     public struct FinalBlendMode

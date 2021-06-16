@@ -6891,6 +6891,7 @@ GameObject:
   - component: {fileID: 1302181356}
   - component: {fileID: 1302181355}
   - component: {fileID: 1302181354}
+  - component: {fileID: 1302181357}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -6963,6 +6964,28 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 7.52, y: 0, z: 0}
+--- !u!114 &1302181357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1302181353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e200daaec4d239d4bb6819a468b451b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings:
+    renderingLayerMask: -1
+    maskLights: 0
+    enablePostFX: 1
+    postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
+    useDepthTexture: 1
+    renderTargetScale: 1
+    finalBlendMode:
+      source: 1
+      destination: 0
 --- !u!1 &1550184312
 GameObject:
   m_ObjectHideFlags: 0
