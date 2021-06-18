@@ -7721,7 +7721,7 @@ MonoBehaviour:
   settings:
     renderingLayerMask: -1
     maskLights: 0
-    enablePostFX: 0
+    enablePostFX: 1
     postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
     copyColor: 1
     copyDepth: 1
