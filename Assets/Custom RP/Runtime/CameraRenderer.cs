@@ -209,7 +209,7 @@ public partial class CameraRenderer
 
         } else if (m_UseIntermediateBuffer)
         {
-            DrawFinal(cameraSettings.finalBlendMode); // 实际项目中这个步骤是渲染到一张RT上，然后用UI相机渲染的一个全屏UI去采样这张RT。这里目前仅仅是将结果拷贝到屏幕上。目的是方便控制渲染分辨率
+            DrawFinal(cameraSettings.finalBlendMode); // 如果最终要渲染到一个UI上，就将该相机的Target Texture 设置为一个RT。而该RT的分辨率则决定了相机的pixelWidth、pixelHeight
         }
 
 
