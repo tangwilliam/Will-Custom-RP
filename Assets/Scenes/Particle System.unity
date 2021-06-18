@@ -7729,7 +7729,7 @@ MonoBehaviour:
     copyDepth: 1
     renderTargetScale: 1
     finalBlendMode:
-      source: 1
+      source: 5
       destination: 10
 --- !u!81 &1830757756
 AudioListener:
