@@ -4,6 +4,7 @@
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,name)
 
 TEXTURE2D(_BaseMap);
+TEXTURE2D(_DistortionMap);
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
@@ -13,27 +14,33 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeDistance)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
+	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
+	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionBlend)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 
 struct InputConfig {
-	float4 vertexColor;
+	float4 color;
 	float2 baseUV;
 	float3 flipbookUVB;
 	bool flipbookBlending;
 	bool nearFade;
+	bool softParticles;
 	Fragment fragment;
 };
 
 InputConfig GetInputConfig ( float4 positionSS ,float2 baseUV) {
 	InputConfig c;
-	c.vertexColor = 1.0;
+	c.color = 1.0;
 	c.baseUV = baseUV;
 	c.flipbookUVB = 0;
 	c.flipbookBlending = false;
 	c.nearFade = false;
+	c.softParticles = false;
 	c.fragment = GetFragment(positionSS);
 	return c;
 }
@@ -45,21 +52,37 @@ float2 TransformBaseUV (float2 baseUV) {
 
 float4 GetBase (InputConfig c) {
 	float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
-	float4 color = INPUT_PROP( _BaseColor);
+	float4 baseColor = INPUT_PROP( _BaseColor);
 
 	if(c.flipbookBlending){
 		float4 baseMap2 = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.flipbookUVB.xy);
-		color = lerp( baseMap, baseMap2, c.flipbookUVB.z );
+		baseMap = lerp( baseMap, baseMap2, c.flipbookUVB.z );
 	}
 	if (c.nearFade) {
 		float nearAttenuation = (c.fragment.depth - INPUT_PROP(_NearFadeDistance)) /
 			INPUT_PROP(_NearFadeRange);
 		baseMap.a *= saturate(nearAttenuation);
 	}
-#if defined(_VERTEX_COLOR)
-    color *= c.vertexColor;
-#endif
-	return baseMap * color;
+	if(c.softParticles){
+		float deltaDepth = c.fragment.bufferDepth - c.fragment.depth;
+		float depthAttenuation = ( deltaDepth - INPUT_PROP(_SoftParticlesDistance) ) / INPUT_PROP( _SoftParticlesRange );
+		baseMap.a *= saturate(depthAttenuation);
+	}
+
+	return baseMap * baseColor * c.color;
+}
+
+float2 GetDistortion(InputConfig c){
+	float4 distortionMap = SAMPLE_TEXTURE2D(_DistortionMap, sampler_BaseMap, c.baseUV);
+	if(c.flipbookBlending){
+		float4 distortionMap2 = SAMPLE_TEXTURE2D(_DistortionMap, sampler_BaseMap, c.flipbookUVB.xy);
+		distortionMap = lerp( distortionMap, distortionMap2, c.flipbookUVB.z );
+	}
+	return DecodeNormal( distortionMap, INPUT_PROP(_DistortionStrength) ).xy;
+}
+
+float GetDistortionBlend(InputConfig c){
+	return INPUT_PROP(_DistortionBlend);
 }
 
 float GetCutoff (float2 baseUV) {

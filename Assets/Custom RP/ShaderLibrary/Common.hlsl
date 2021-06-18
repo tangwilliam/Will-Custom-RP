@@ -26,6 +26,8 @@ SAMPLER(sampler_point_clamp); // 有些图进行滤波没有意义，比如深�
 bool IsOrthographicCamera () {
 	return unity_OrthoParams.w;
 }
+
+// 正交相机在进行投影矩阵变换时，对于所有分量(x,y,z)的变化都是线性变化( 类似于 ax + b的计算 )。可以说它们的值始终是线性的。w分量始终是1，齐次裁剪之后z分量仍然维持在Clip空间（裁剪空间）中的值(OpenGL范围[-1,1])。故可以同样通过线性计算（如 ax + b）变回到View空间的值。（view空间中处在near到far之间的值往往是负数，所以要使用z值最后还要对它求相反数）
 float OrthographicDepthBufferToLinear (float rawDepth) {
 	#if UNITY_REVERSED_Z
 		rawDepth = 1.0 - rawDepth;

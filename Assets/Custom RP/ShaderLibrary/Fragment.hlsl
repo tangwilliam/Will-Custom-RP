@@ -1,6 +1,7 @@
 #ifndef FRAGMENT_INCLUDED
 #define FRAGMENT_INCLUDED
 
+TEXTURE2D(_CameraColorTexture);
 TEXTURE2D(_CameraDepthTexture);
 
 struct Fragment {
@@ -17,11 +18,16 @@ Fragment GetFragment (float4 positionSS) {
 	f.depth = IsOrthographicCamera() ?
 		OrthographicDepthBufferToLinear(positionSS.z) : positionSS.w; // 做完齐次除法之后w是否在任何平台下都仍然不变，这个有待实测
 	
-	f.bufferDepth = SAMPLE_DEPTH_TEXTURE_LOD( _CameraDepthTexture, sampler_point_clamp, f.screenUV, 0 );
+	f.bufferDepth = SAMPLE_DEPTH_TEXTURE_LOD( _CameraDepthTexture, sampler_point_clamp, f.screenUV, 0 ); // 如果没有开启深度图，那么这将是一张1x1的图，理论上开销非常小
 	f.bufferDepth = IsOrthographicCamera() ?
-		OrthographicDepthBufferToLinear(f.bufferDepth) : LinearEyeDepth(f.bufferDepth, _ZBufferParams);
+		OrthographicDepthBufferToLinear(f.bufferDepth) : LinearEyeDepth(f.bufferDepth, _ZBufferParams); // 深度图中的深度是非线性的
 
 	return f;
+}
+
+float4 GetBufferColor( Fragment fragment, float2 uvOffset = float2(0.0,0.0) ){
+	float2 uv = fragment.screenUV.xy + uvOffset;
+	return SAMPLE_TEXTURE2D_LOD( _CameraColorTexture, sampler_linear_clamp, uv, 0 );
 }
 
 #endif

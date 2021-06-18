@@ -7,7 +7,18 @@ using UnityEngine.Rendering;
 public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 {
     [SerializeField]
-    bool m_UseDynamicBatching = true, m_UseGPUInstancing = true, m_UseSRPBatcher = true, m_UseLightsPerObject = true, m_UseHDR = true;
+    bool m_UseDynamicBatching = true, m_UseGPUInstancing = true, m_UseSRPBatcher = true, m_UseLightsPerObject = true;
+
+    /// <summary>
+    /// 全局管控 HDR，深度图等。
+    /// </summary>
+    [SerializeField]
+    CameraBufferSettings m_CameraBufferSettings = new CameraBufferSettings
+    {
+        allowHDR = true,
+        copyColor = true,
+        copyDepth = true
+    };
 
     [SerializeField]
     ShadowSettings m_ShadowSettings = default;
@@ -25,7 +36,7 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline( m_UseDynamicBatching, m_UseGPUInstancing, m_UseSRPBatcher, m_UseLightsPerObject, m_UseHDR ,m_ShadowSettings,
+        return new CustomRenderPipeline( m_UseDynamicBatching, m_UseGPUInstancing, m_UseSRPBatcher, m_UseLightsPerObject, m_CameraBufferSettings ,m_ShadowSettings,
             m_PostFXSettings, (int)m_ColorLUTResolution, m_CameraRendererShader );
     }
 }

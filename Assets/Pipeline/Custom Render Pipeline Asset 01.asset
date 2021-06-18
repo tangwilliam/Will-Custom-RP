@@ -16,7 +16,12 @@ MonoBehaviour:
   m_UseGPUInstancing: 1
   m_UseSRPBatcher: 1
   m_UseLightsPerObject: 0
-  m_UseHDR: 1
+  m_CameraBufferSettings:
+    allowHDR: 1
+    copyColor: 1
+    copyColorReflections: 0
+    copyDepth: 1
+    copyDepthReflections: 0
   m_ShadowSettings:
     m_MaxDistance: 46.6
     m_DistanceFade: 0.147

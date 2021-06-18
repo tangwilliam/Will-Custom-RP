@@ -54,7 +54,7 @@ float4 UnlitPassFragment( Varyings input ):SV_TARGET{
     ClipLOD( config.fragment, unity_LODFade.x );
 
     #if defined(_VERTEX_COLOR)
-        config.vertexColor = input.vertexColor;
+        config.color = input.vertexColor;
     #endif
     #if defined(_FLIPBOOK_BLENDING)
         config.flipbookUVB = input.flipbookUVB;
@@ -64,16 +64,26 @@ float4 UnlitPassFragment( Varyings input ):SV_TARGET{
     #endif
 
     #if defined(_NEAR_FADE)
-            config.nearFade = true;
+        config.nearFade = true;
+    #endif
+    #if defined(_SOFT_PARTICLES)
+        config.softParticles = true;
     #endif
 
     float4 color = GetBase(config);
-#if defined(_CLIPPING)
-    clip( color.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Cutoff) );
-#endif
+    #if defined(_CLIPPING)
+        clip( color.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Cutoff) );
+    #endif
+    #if defined(_DISTORTION)
+        float2 distortion = GetDistortion(config) * color.a;
+        color.rgb = lerp( GetBufferColor( config.fragment, distortion ).rgb, color.rgb, saturate( color.a - GetDistortionBlend(config)));
+    #endif
+    
+
     color.a = GetFinalAlpha(color.a);
 
-    color = float4( config.fragment.bufferDepth.xxx / 20.0, 1.0);  //test
+    // return GetBufferColor(config.fragment, float2(0.05,0.05)); //test
+    // color = float4( config.fragment.bufferDepth.xxx / 20.0, 1.0);  //test
 
     return color;
 }

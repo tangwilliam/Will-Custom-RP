@@ -11,21 +11,22 @@ public partial class CustomRenderPipeline:RenderPipeline
     bool m_UseGPUInstancing = true;
     bool m_UseSRPBatcher = true;
     bool m_UseLightsPerObject = false;
-    bool m_UseHDR = true;
 
+    CameraBufferSettings m_CamerBufferSettings;
     ShadowSettings m_ShadowSettings;
     PostFXSettings m_PostFXSettings;
 
     int m_ColorLUTResolution;
 
     public CustomRenderPipeline( bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatching, bool useLightsPerObject, 
-        bool useHDR ,ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution, Shader cameraRendererShader )
+       CameraBufferSettings cameraBufferSettings ,ShadowSettings shadowSettings, PostFXSettings postFXSettings, 
+       int colorLUTResolution, Shader cameraRendererShader )
     {
         m_UseDynamicBatching = useDynamicBatching;
         m_UseGPUInstancing = useGPUInstancing;
         m_UseSRPBatcher = useSRPBatching;
         m_UseLightsPerObject = useLightsPerObject;
-        m_UseHDR = useHDR;
+        m_CamerBufferSettings = cameraBufferSettings;
         m_ShadowSettings = shadowSettings;
         m_PostFXSettings = postFXSettings;
         m_ColorLUTResolution = colorLUTResolution;
@@ -43,7 +44,7 @@ public partial class CustomRenderPipeline:RenderPipeline
 
         foreach( Camera camera in cameras)
         {
-            m_CameraRenderer.Render(context, camera, m_UseDynamicBatching, m_UseGPUInstancing, m_UseLightsPerObject , m_UseHDR,m_ShadowSettings, 
+            m_CameraRenderer.Render(context, camera, m_UseDynamicBatching, m_UseGPUInstancing, m_UseLightsPerObject , m_CamerBufferSettings,m_ShadowSettings, 
                 m_PostFXSettings, m_ColorLUTResolution);
         }
     }

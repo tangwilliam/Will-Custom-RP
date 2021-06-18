@@ -56,6 +56,11 @@ using UnityEditor;
     {
         if (Handles.ShouldRenderGizmos())
         {
+            if (m_UseDepthTexture)
+            {
+                Draw(s_DepthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
+                ExecuteCommandBuffer();
+            }
             m_Context.DrawGizmos(m_Camera, GizmoSubset.PreImageEffects);
         }
     }
