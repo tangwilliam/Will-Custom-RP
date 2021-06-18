@@ -6328,7 +6328,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -163, y: -84}
+  m_AnchoredPosition: {x: -157, y: -84}
   m_SizeDelta: {x: 926.2516, y: 425.8462}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &637827509
@@ -7221,7 +7221,6 @@ MonoBehaviour:
     postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
     copyColor: 1
     copyDepth: 1
-    renderTargetScale: 1
     finalBlendMode:
       source: 1
       destination: 0
@@ -7699,7 +7698,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1830757758}
   - component: {fileID: 1830757757}
-  - component: {fileID: 1830757756}
   - component: {fileID: 1830757755}
   m_Layer: 0
   m_Name: Main Camera (1)
@@ -7727,18 +7725,9 @@ MonoBehaviour:
     postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
     copyColor: 1
     copyDepth: 1
-    renderTargetScale: 1
     finalBlendMode:
       source: 5
       destination: 10
---- !u!81 &1830757756
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1830757754}
-  m_Enabled: 1
 --- !u!20 &1830757757
 Camera:
   m_ObjectHideFlags: 0
@@ -7758,10 +7747,10 @@ Camera:
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.25
+    x: 0
     y: 0
-    width: 0.5
-    height: 0.5
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60

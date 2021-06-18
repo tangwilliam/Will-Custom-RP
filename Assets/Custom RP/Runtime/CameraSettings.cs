@@ -23,9 +23,6 @@ public class CameraSettings
     public PostFXSettings postFXSettings = null;
     public bool copyColor, copyDepth = false;
 
-    [Range(0.01f, 1.0f)]
-    public float renderTargetScale = 1.0f;
-
     [Serializable]
     public struct FinalBlendMode
     {

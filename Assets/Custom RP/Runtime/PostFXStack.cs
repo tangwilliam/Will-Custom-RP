@@ -28,7 +28,6 @@ public partial class PostFXStack
 
     int colorLUTResolution;
 
-    int finalRenderTargetId;
     int rtWidth;
     int rtHeight;
 
@@ -109,9 +108,8 @@ public partial class PostFXStack
         ApplySceneViewState();
     }
 
-    public void Render(int sourceId, int targetId)
+    public void Render(int sourceId)
     {
-        finalRenderTargetId = targetId;
 
         if (DoBloom(sourceId))
         {
@@ -339,7 +337,7 @@ public partial class PostFXStack
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         buffer.SetGlobalTexture(fxSourceId, from);
-        buffer.SetRenderTarget( finalRenderTargetId, 
+        buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, 
             finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, 
             RenderBufferStoreAction.Store);
         //buffer.SetViewport(camera.pixelRect); // 在实际项目中多使用RT绘制到面片或者UI上，其在屏幕上的位置往往由面片或UI来决定。而使用 pixelRect的话会导致修改申请的RT尺寸之后，显示的画面区域也变了
