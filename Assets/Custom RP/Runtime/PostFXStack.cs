@@ -28,8 +28,7 @@ public partial class PostFXStack
 
     int colorLUTResolution;
 
-    int rtWidth;
-    int rtHeight;
+    Vector2Int bufferSize;
 
     int
         bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
@@ -91,14 +90,13 @@ public partial class PostFXStack
     }
 
     public void Setup(
-        ScriptableRenderContext context, Camera camera, int rtWidth, int rtHeight , bool useHDR, PostFXSettings settings, 
+        ScriptableRenderContext context, Camera camera, Vector2Int bufferSize , bool useHDR, PostFXSettings settings, 
         int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode, bool enablePostFX
     )
     {
         this.context = context;
         this.camera = camera;
-        this.rtWidth = rtWidth;
-        this.rtHeight = rtHeight;
+        this.bufferSize = bufferSize;
         this.useHDR = useHDR;
         this.settings =
             camera.cameraType <= CameraType.SceneView ? settings : null;
@@ -129,7 +127,18 @@ public partial class PostFXStack
     {
         
         PostFXSettings.BloomSettings bloom = settings.Bloom;
-        int width = rtWidth / 2, height = rtHeight / 2;
+
+        int width, height;
+        if (bloom.ignoreRenderScale)
+        {
+            width = camera.pixelWidth / 2;
+            height = camera.pixelHeight / 2;
+        }
+        else
+        {
+            width = bufferSize.x / 2;
+            height = bufferSize.y / 2;
+        }
 
         if (
             bloom.maxIterations == 0 || bloom.intensity <= 0f ||
@@ -151,7 +160,7 @@ public partial class PostFXStack
 
         RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
         buffer.GetTemporaryRT( bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
-        buffer.GetTemporaryRT(bloomResultId, rtWidth, rtHeight, 0, FilterMode.Bilinear, format);
+        buffer.GetTemporaryRT(bloomResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, format);
         Draw(sourceId, bloomPrefilterId, bloom.fadeFireFlies? Pass.BloomPrefilterFireflies: Pass.BloomPrefilter); // 使用Soft Knee Curve 做阈值调整原图，比直接减去阈值要得到更柔和的bloom效果递增
         width /= 2;
         height /= 2;
@@ -340,7 +349,7 @@ public partial class PostFXStack
         buffer.SetRenderTarget( BuiltinRenderTextureType.CameraTarget, 
             finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, 
             RenderBufferStoreAction.Store);
-        //buffer.SetViewport(camera.pixelRect); // 在实际项目中多使用RT绘制到面片或者UI上，其在屏幕上的位置往往由面片或UI来决定。而使用 pixelRect的话会导致修改申请的RT尺寸之后，显示的画面区域也变了
+        buffer.SetViewport(camera.pixelRect);
         buffer.DrawProcedural(
             Matrix4x4.identity, settings.Material, (int)pass,
             MeshTopology.Triangles, 3

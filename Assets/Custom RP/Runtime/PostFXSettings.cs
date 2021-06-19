@@ -11,6 +11,8 @@ public class PostFXSettings : ScriptableObject
     [System.Serializable]
     public struct BloomSettings
     {
+        public bool ignoreRenderScale;
+
         public bool fadeFireFlies;
 
         public enum Mode { Additive, Scattering }
@@ -41,7 +43,8 @@ public class PostFXSettings : ScriptableObject
     [SerializeField]
     BloomSettings bloom = new BloomSettings
     {
-        scatter = 0.07f
+        scatter = 0.07f,
+        ignoreRenderScale = true
     };
 
     public BloomSettings Bloom => bloom;

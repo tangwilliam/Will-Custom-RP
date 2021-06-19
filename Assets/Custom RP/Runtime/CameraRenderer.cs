@@ -22,9 +22,14 @@ public partial class CameraRenderer
         s_ColorTextureId = Shader.PropertyToID("_CameraColorTexture"),
         s_DepthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
         s_SrcBlendId = Shader.PropertyToID("_CameraSrcBlend"),
-        s_DstBlendId = Shader.PropertyToID("_CameraDstBlend");
+        s_DstBlendId = Shader.PropertyToID("_CameraDstBlend"),
+        s_CameraBufferSizeId = Shader.PropertyToID("_CameraBufferSize");
 
     static CameraSettings s_DefaultCameraSettings = new CameraSettings();
+
+    const float
+        m_MinRenderScale = 0.1f,
+        m_MaxRenderScale = 2f;
 
     const string m_BufferName = "Render Camera";
 
@@ -38,7 +43,9 @@ public partial class CameraRenderer
     PostFXStack m_PostFXStack = new PostFXStack();
     bool m_UseColorTexture, m_UseDepthTexture, m_UseIntermediateBuffer;
 
-    bool m_UseHDR;
+    bool m_UseHDR,m_UseRenderScale;
+
+    Vector2Int m_BufferSize;
 
     Material m_Material;
 
@@ -77,9 +84,9 @@ public partial class CameraRenderer
             {
                 flag = CameraClearFlags.Color;
             }
-            m_CommondBuffer.GetTemporaryRT(s_ColorAttachmentId, m_Camera.pixelWidth, m_Camera.pixelHeight, 0, FilterMode.Bilinear, 
+            m_CommondBuffer.GetTemporaryRT(s_ColorAttachmentId, m_BufferSize.x, m_BufferSize.y, 0, FilterMode.Bilinear, 
                 m_UseHDR? RenderTextureFormat.DefaultHDR:RenderTextureFormat.Default);
-            m_CommondBuffer.GetTemporaryRT(s_DepthAttachmentId, m_Camera.pixelWidth, m_Camera.pixelHeight, 32, FilterMode.Point,
+            m_CommondBuffer.GetTemporaryRT(s_DepthAttachmentId, m_BufferSize.x, m_BufferSize.y, 32, FilterMode.Point,
                 RenderTextureFormat.Depth);
             m_CommondBuffer.SetRenderTarget(s_ColorAttachmentId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                                             s_DepthAttachmentId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
@@ -90,6 +97,8 @@ public partial class CameraRenderer
         m_CommondBuffer.BeginSample(m_SampleName);
         m_CommondBuffer.SetGlobalTexture(s_ColorTextureId, m_MissingTexture);
         m_CommondBuffer.SetGlobalTexture(s_DepthTextureId, m_MissingTexture);
+        m_CommondBuffer.SetGlobalVector(s_CameraBufferSizeId,
+            new Vector4(1.0f / m_BufferSize.x, 1.0f / m_BufferSize.y, m_BufferSize.x, m_BufferSize.y));
 
         ExecuteCommandBuffer();
 
@@ -180,8 +189,6 @@ public partial class CameraRenderer
             m_UseDepthTexture = cameraSettings.copyDepth && cameraBufferSettings.copyDepth;
         }
         
-        m_UseHDR = camera.allowHDR && cameraBufferSettings.allowHDR;
-
         PrepareBuffer(); // 在使用CommandBuffer之前，为它准备好名字。以便在FrameDebugger或Profiler中调试跟踪。不放在后面的Setup()中是因为要让编辑器下逐相机命名，但build则不这么做。
         PrepareForSceneWindow(); // For UI to Show in SceneView
 
@@ -190,11 +197,28 @@ public partial class CameraRenderer
             return;
         }
 
+        m_UseHDR = m_Camera.allowHDR && cameraBufferSettings.allowHDR;
+
+        float renderScale = cameraSettings.GetRenderScale(cameraBufferSettings.renderScale);
+        m_UseRenderScale = renderScale < 0.99f || renderScale > 1.01f;
+
+        if (m_UseRenderScale)
+        {
+            renderScale = Mathf.Clamp(renderScale, m_MinRenderScale, m_MaxRenderScale);
+            m_BufferSize.x = (int)(m_Camera.pixelWidth * renderScale);
+            m_BufferSize.y = (int)(m_Camera.pixelHeight * renderScale);
+        }
+        else
+        {
+            m_BufferSize.x = m_Camera.pixelWidth;
+            m_BufferSize.y = m_Camera.pixelHeight;
+        }
+
         m_CommondBuffer.BeginSample(m_BufferName);
         ExecuteCommandBuffer();
         int lightsMask = cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1;
         m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject, lightsMask ); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
-        m_PostFXStack.Setup(m_Context, m_Camera, m_Camera.pixelWidth, m_Camera.pixelHeight, m_UseHDR, postFXSettings, colorLUTResolution, cameraSettings.finalBlendMode, cameraSettings.enablePostFX);
+        m_PostFXStack.Setup(m_Context, m_Camera, m_BufferSize, m_UseHDR, postFXSettings, colorLUTResolution, cameraSettings.finalBlendMode, cameraSettings.enablePostFX);
         m_CommondBuffer.EndSample(m_BufferName);
 
         Setup(); // 根据相机参数设置绘制所需的变量，并将 PrepareBuffer()时获取到的名字设置给 m_CommondBuffer.BeginSample(),以便调试
@@ -245,7 +269,7 @@ public partial class CameraRenderer
     {
         if (m_UseColorTexture)
         {
-            m_CommondBuffer.GetTemporaryRT(s_ColorTextureId, m_Camera.pixelWidth, m_Camera.pixelHeight, 0, FilterMode.Bilinear,
+            m_CommondBuffer.GetTemporaryRT(s_ColorTextureId, m_BufferSize.x, m_BufferSize.y, 0, FilterMode.Bilinear,
                 m_UseHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 
             if (s_CopyTextureSupported)
@@ -260,7 +284,7 @@ public partial class CameraRenderer
 
         if (m_UseDepthTexture)
         {
-            m_CommondBuffer.GetTemporaryRT(s_DepthTextureId, m_Camera.pixelWidth, m_Camera.pixelHeight, 32, FilterMode.Point, RenderTextureFormat.Depth);
+            m_CommondBuffer.GetTemporaryRT(s_DepthTextureId, m_BufferSize.x, m_BufferSize.y, 32, FilterMode.Point, RenderTextureFormat.Depth);
 
             if (s_CopyTextureSupported)
             {

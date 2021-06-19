@@ -17,7 +17,8 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     {
         allowHDR = true,
         copyColor = true,
-        copyDepth = true
+        copyDepth = true,
+        renderScale = 1f
     };
 
     [SerializeField]

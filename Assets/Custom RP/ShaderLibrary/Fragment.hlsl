@@ -4,6 +4,8 @@
 TEXTURE2D(_CameraColorTexture);
 TEXTURE2D(_CameraDepthTexture);
 
+float4 _CameraBufferSize;
+
 struct Fragment {
 	float2 positionSS; // Screen Space Position
 	float2 screenUV;
@@ -14,7 +16,7 @@ struct Fragment {
 Fragment GetFragment (float4 positionSS) {
 	Fragment f;
 	f.positionSS = positionSS.xy;
-	f.screenUV = f.positionSS / _ScreenParams.xy;
+	f.screenUV = f.positionSS * _CameraBufferSize.xy;
 	f.depth = IsOrthographicCamera() ?
 		OrthographicDepthBufferToLinear(positionSS.z) : positionSS.w; // 做完齐次除法之后w是否在任何平台下都仍然不变，这个有待实测
 	

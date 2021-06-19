@@ -22,6 +22,7 @@ MonoBehaviour:
     copyColorReflections: 0
     copyDepth: 1
     copyDepthReflections: 0
+    renderScale: 1
   m_ShadowSettings:
     m_MaxDistance: 46.6
     m_DistanceFade: 0.147
