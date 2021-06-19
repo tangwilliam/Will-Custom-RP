@@ -29,9 +29,9 @@ MonoBehaviour:
   colorAdjustments:
     eanbleColorAdjust: 0
     postExposure: 0
-    contrast: -1.9
+    contrast: 1
     colorFilter: {r: 0.995283, g: 1, b: 0.99698496, a: 1}
-    hueShift: -40
+    hueShift: 1
     saturation: 0
   whiteBalance:
     temperature: 0

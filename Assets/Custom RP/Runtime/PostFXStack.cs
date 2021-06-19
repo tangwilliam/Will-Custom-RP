@@ -19,6 +19,7 @@ public partial class PostFXStack
         ColorGradingAndNeutralToneMapping,
         COlorGradingAndReinhardToneMapping,
         FinalPass,
+        FinalRescale,
         Copy
     }
 
@@ -56,6 +57,7 @@ public partial class PostFXStack
         enableColorGradingId = Shader.PropertyToID("_EnableColorGrading");
 
     int
+        finalResultId = Shader.PropertyToID("_FinalResult"),
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
@@ -267,12 +269,12 @@ public partial class PostFXStack
             buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                1f / lutWidth, 1f / lutHeight, lutHeight - 1f, 0.0f
             ));
-            DrawFinal(sourceId, Pass.FinalPass);
+            DrawFinalWithScale(sourceId, Pass.FinalPass);
             buffer.ReleaseTemporaryRT(colorGradingLUTId);
         }
         else
         {
-            DrawFinal(sourceId, pass);
+            DrawFinalWithScale(sourceId, pass);
         }
 
         buffer.EndSample("Color Grading and ToneMapping");
@@ -341,6 +343,33 @@ public partial class PostFXStack
             Matrix4x4.identity, settings.Material, (int)pass,
             MeshTopology.Triangles, 3
         );
+    }
+
+    /// <summary>
+    /// <para>考虑 scale 的目的是让最后的 ColorGrading及ToneMapping 也在 bufferSize下做。否则无法控制这块的GPU开销。
+    /// 并且先在bufferSize下变成LDR，这样缩放到 CameraTarget时就不容易出现 HDR缩放产生的锯齿或变化不连续的问题。</para>
+    /// （HDR到LDR的不连续问题：自己在编辑器上没有观察到，猜测是ToneMapping之后颜色值本身已经没有超过1的值导致的？但关闭ToneMapping仍不明显？）
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="pass"></param>
+    void DrawFinalWithScale(RenderTargetIdentifier from, Pass pass)
+    {
+        if (bufferSize.x == camera.pixelWidth)
+        {
+            DrawFinal(from, pass);
+        }
+        else
+        {
+            buffer.SetGlobalFloat(finalSrcBlendId, 1f);
+            buffer.SetGlobalFloat(finalDstBlendId, 0f);
+            buffer.GetTemporaryRT(
+                finalResultId, bufferSize.x, bufferSize.y, 0,
+                FilterMode.Bilinear, RenderTextureFormat.Default
+            );
+            Draw(from, finalResultId, pass);
+            DrawFinal(finalResultId, Pass.FinalRescale);
+            buffer.ReleaseTemporaryRT(finalResultId);
+        }
     }
 
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
