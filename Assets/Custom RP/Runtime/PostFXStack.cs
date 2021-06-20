@@ -57,6 +57,7 @@ public partial class PostFXStack
         enableColorGradingId = Shader.PropertyToID("_EnableColorGrading");
 
     int
+        copyBicubicId = Shader.PropertyToID("_CopyBicubic"),
         finalResultId = Shader.PropertyToID("_FinalResult"),
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
@@ -82,6 +83,8 @@ public partial class PostFXStack
     public bool useHDR;
     public bool enableColorGrading;
 
+    CameraBufferSettings.BicubicRescalingMode bicubicRescaling;
+
     public PostFXStack()
     {
         bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
@@ -93,7 +96,7 @@ public partial class PostFXStack
 
     public void Setup(
         ScriptableRenderContext context, Camera camera, Vector2Int bufferSize , bool useHDR, PostFXSettings settings, 
-        int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode, bool enablePostFX
+        int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode, bool enablePostFX, CameraBufferSettings.BicubicRescalingMode bicubicRescaling
     )
     {
         this.context = context;
@@ -105,6 +108,7 @@ public partial class PostFXStack
         this.colorLUTResolution = colorLUTResolution;
         this.finalBlendMode = finalBlendMode;
         this.enablePostFX = enablePostFX;
+        this.bicubicRescaling = bicubicRescaling;
         ApplySceneViewState();
     }
 
@@ -360,12 +364,15 @@ public partial class PostFXStack
         }
         else
         {
+            float bicubicSampling = (bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown) ? 1.0f :
+                    ((bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly && bufferSize.x < camera.pixelWidth) ? 1.0f : 0.0f);
+            buffer.SetGlobalFloat(copyBicubicId, bicubicSampling);
             buffer.SetGlobalFloat(finalSrcBlendId, 1f);
             buffer.SetGlobalFloat(finalDstBlendId, 0f);
             buffer.GetTemporaryRT(
                 finalResultId, bufferSize.x, bufferSize.y, 0,
-                FilterMode.Bilinear, RenderTextureFormat.Default
-            );
+                FilterMode.Bilinear, RenderTextureFormat.Default 
+            ); // 注意这里申请的RT已经是 LDR 的了
             Draw(from, finalResultId, pass);
             DrawFinal(finalResultId, Pass.FinalRescale);
             buffer.ReleaseTemporaryRT(finalResultId);

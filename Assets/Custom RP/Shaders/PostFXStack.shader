@@ -145,7 +145,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
-				#pragma fragment CopyPassFragment
+				#pragma fragment FinalPassFragmentRescale
 			ENDHLSL
 		}
 		Pass {

@@ -43,7 +43,7 @@ public partial class CameraRenderer
     PostFXStack m_PostFXStack = new PostFXStack();
     bool m_UseColorTexture, m_UseDepthTexture, m_UseIntermediateBuffer;
 
-    bool m_UseHDR,m_UseRenderScale;
+    bool m_UseHDR,m_UseScaledRendering;
 
     Vector2Int m_BufferSize;
 
@@ -76,7 +76,7 @@ public partial class CameraRenderer
 
         CameraClearFlags flag = m_Camera.clearFlags;
 
-        m_UseIntermediateBuffer = m_UseColorTexture || m_UseDepthTexture || m_PostFXStack.IsActive;
+        m_UseIntermediateBuffer = m_UseColorTexture || m_UseDepthTexture || m_PostFXStack.IsActive || m_UseScaledRendering;
 
         if ( m_UseIntermediateBuffer )
         {
@@ -200,9 +200,9 @@ public partial class CameraRenderer
         m_UseHDR = m_Camera.allowHDR && cameraBufferSettings.allowHDR;
 
         float renderScale = cameraSettings.GetRenderScale(cameraBufferSettings.renderScale);
-        m_UseRenderScale = renderScale < 0.99f || renderScale > 1.01f;
+        m_UseScaledRendering = renderScale < 0.99f || renderScale > 1.01f;
 
-        if (m_UseRenderScale)
+        if (m_UseScaledRendering)
         {
             renderScale = Mathf.Clamp(renderScale, m_MinRenderScale, m_MaxRenderScale);
             m_BufferSize.x = (int)(m_Camera.pixelWidth * renderScale);
@@ -218,7 +218,8 @@ public partial class CameraRenderer
         ExecuteCommandBuffer();
         int lightsMask = cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1;
         m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject, lightsMask ); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
-        m_PostFXStack.Setup(m_Context, m_Camera, m_BufferSize, m_UseHDR, postFXSettings, colorLUTResolution, cameraSettings.finalBlendMode, cameraSettings.enablePostFX);
+        m_PostFXStack.Setup(m_Context, m_Camera, m_BufferSize, m_UseHDR, postFXSettings, colorLUTResolution, 
+            cameraSettings.finalBlendMode, cameraSettings.enablePostFX, cameraBufferSettings.bicubicRescaling);
         m_CommondBuffer.EndSample(m_BufferName);
 
         Setup(); // 根据相机参数设置绘制所需的变量，并将 PrepareBuffer()时获取到的名字设置给 m_CommondBuffer.BeginSample(),以便调试
