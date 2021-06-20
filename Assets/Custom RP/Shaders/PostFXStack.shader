@@ -10,7 +10,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 		#include "PostFXStackPasses.hlsl"
 		ENDHLSL
 		
-		Pass {
+		Pass { // 0
 			Name "Bloom Combine"
 			
 			HLSLPROGRAM
@@ -20,7 +20,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
         
-		Pass {
+		Pass { // 1
 			Name "Bloom Scatter"
 			
 			HLSLPROGRAM
@@ -29,7 +29,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment BloomScatterPassFragment
 			ENDHLSL
 		}
-        Pass {
+        Pass {// 2
 			Name "Bloom Scatter Final"
 			
 			HLSLPROGRAM
@@ -38,7 +38,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment BloomScatterFinalPassFragment
 			ENDHLSL
 		}
-		Pass {
+		Pass {// 3
 			Name "Bloom Horizontal"
 			
 			HLSLPROGRAM
@@ -48,7 +48,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
 
-		Pass {
+		Pass {// 4
 			Name "Bloom Prefilter"
 			
 			HLSLPROGRAM
@@ -58,7 +58,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
 
-        Pass {
+        Pass {// 5
 			Name "Bloom Prefilter FadeFireflies"
 			
 			HLSLPROGRAM
@@ -68,7 +68,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
 		
-		Pass {
+		Pass {// 6
 			Name "Bloom Vertical"
 			
 			HLSLPROGRAM
@@ -81,7 +81,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
         //------------------------------
         // 都可以作为Final Pass 的 :  Tone Mapping / No Tone Mapping / Final(Enable Color Grade LUT)
 		// 用于叠加别人的相机的clearColor必须设置为黑色，因为颜色也是 One OneMinusSrcAlpha了。属于Additive类型。否则背景部分本该没有颜色，却叠加了clearColor的颜色。
-		Pass {
+		Pass {// 7
 			Name "Color Grading No ToneMapping"
 
             Blend [_FinalSrcBlend] [_FinalDstBlend]
@@ -92,7 +92,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment ColorGradingAndToneMappingNonePassFragment
 			ENDHLSL
 		}
-        Pass {
+        Pass {// 8
 			Name "Color Grading ACES ToneMapping"
 
             Blend [_FinalSrcBlend] [_FinalDstBlend]
@@ -103,7 +103,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment ColorGradingAndToneMappingACESPassFragment
 			ENDHLSL
 		}
-        Pass {
+        Pass {// 9
 			Name "Color Grading Neutral"
 
             Blend [_FinalSrcBlend] [_FinalDstBlend]
@@ -115,7 +115,7 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 			ENDHLSL
 		}
 		
-		Pass {
+		Pass {// 10
 			Name "Color Grading Reinhard"
 
             Blend [_FinalSrcBlend] [_FinalDstBlend]
@@ -126,18 +126,18 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment ColorGradingReinhardPassFragment
 			ENDHLSL
 		}
-        Pass {
-			Name "Final"
+        Pass {// 11
+			Name "Apply Color Grading"
 
             Blend [_FinalSrcBlend] [_FinalDstBlend]
 			
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
-				#pragma fragment FinalPassFragment
+				#pragma fragment ApplyColorGradingFragment
 			ENDHLSL
 		}
-		Pass {
+		Pass {// 12
 			Name "Final Rescale"
 
 			Blend [_FinalSrcBlend] [_FinalDstBlend]
@@ -148,13 +148,41 @@ Shader "Hidden/Custom RP/Post FX Stack" {
 				#pragma fragment FinalPassFragmentRescale
 			ENDHLSL
 		}
-		Pass {
+		Pass {// 13
 			Name "Copy"
 			
 			HLSLPROGRAM
 				#pragma target 3.5
 				#pragma vertex DefaultPassVertex
 				#pragma fragment CopyPassFragment
+			ENDHLSL
+		}
+		Pass {// 14
+			Name "FXAA"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment FXAAPassFragment
+				#pragma multi_compile _ FXAA_QUALITY_MEDIUM FXAA_QUALITY_LOW
+				#include "FXAAPass.hlsl"
+			ENDHLSL
+		}
+		
+		Pass {
+			Name "FXAA With Luma"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment FXAAPassFragment
+				#pragma multi_compile _ FXAA_QUALITY_MEDIUM FXAA_QUALITY_LOW
+				#define FXAA_ALPHA_CONTAINS_LUMA
+				#include "FXAAPass.hlsl"
 			ENDHLSL
 		}
 	}

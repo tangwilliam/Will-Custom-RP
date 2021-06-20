@@ -218,8 +218,9 @@ public partial class CameraRenderer
         ExecuteCommandBuffer();
         int lightsMask = cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1;
         m_Lighting.Setup(m_Context, m_CullingResults, shadowSettings, useLightsPerObject, lightsMask ); // 该步骤不仅设置了光照数据，还渲染了Shadowmap
+        cameraBufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
         m_PostFXStack.Setup(m_Context, m_Camera, m_BufferSize, m_UseHDR, postFXSettings, colorLUTResolution, 
-            cameraSettings.finalBlendMode, cameraSettings.enablePostFX, cameraBufferSettings.bicubicRescaling);
+            cameraSettings.finalBlendMode, cameraSettings.enablePostFX, cameraBufferSettings.bicubicRescaling, cameraBufferSettings.fxaa);
         m_CommondBuffer.EndSample(m_BufferName);
 
         Setup(); // 根据相机参数设置绘制所需的变量，并将 PrepareBuffer()时获取到的名字设置给 m_CommondBuffer.BeginSample(),以便调试

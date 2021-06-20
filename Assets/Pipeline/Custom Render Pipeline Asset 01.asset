@@ -22,8 +22,14 @@ MonoBehaviour:
     copyColorReflections: 0
     copyDepth: 1
     copyDepthReflections: 0
-    renderScale: 2
+    renderScale: 1
     bicubicRescaling: 0
+    fxaa:
+      enabled: 0
+      fixedThreshold: 0
+      relativeThreshold: 0
+      subpixelBlending: 0
+      quality: 0
   m_ShadowSettings:
     m_MaxDistance: 46.6
     m_DistanceFade: 0.147

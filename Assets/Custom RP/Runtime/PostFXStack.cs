@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static PostFXSettings;
 
+// 备注： 这个Stack目前是按照 CatLikeCoding 的SRP教程搭建框架的。对于灵活地配置各种不同后效并不友好。
+// todo: 参考PPv2 或者自己在xzj项目中那样将 Stack和单个后效的Render()进行解耦。这样能够条理清晰地方便在实际项目中根据需求配置不同后效组合。
 public partial class PostFXStack
 {
 
@@ -18,12 +20,18 @@ public partial class PostFXStack
         ColorGradingAndACESToneMapping,
         ColorGradingAndNeutralToneMapping,
         COlorGradingAndReinhardToneMapping,
-        FinalPass,
+        ApplyColorGrading,
         FinalRescale,
-        Copy
+        Copy,
+        FXAA,
+        FXAAWithLuma
     }
 
     const string bufferName = "Post FX";
+
+    const string
+        fxaaQualityLowKeyword = "FXAA_QUALITY_LOW",
+        fxaaQualityMediumKeyword = "FXAA_QUALITY_MEDIUM";
 
     const int maxBloomPyramidLevels = 16;
 
@@ -62,6 +70,8 @@ public partial class PostFXStack
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
+    int fxaaConfigId = Shader.PropertyToID("_FXAAConfig");
+
     CommandBuffer buffer = new CommandBuffer
     {
         name = bufferName
@@ -85,6 +95,8 @@ public partial class PostFXStack
 
     CameraBufferSettings.BicubicRescalingMode bicubicRescaling;
 
+    CameraBufferSettings.FXAA fxaa; // 暂时不打算在重构PostFXStack之前增加FXAA
+
     public PostFXStack()
     {
         bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
@@ -96,7 +108,8 @@ public partial class PostFXStack
 
     public void Setup(
         ScriptableRenderContext context, Camera camera, Vector2Int bufferSize , bool useHDR, PostFXSettings settings, 
-        int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode, bool enablePostFX, CameraBufferSettings.BicubicRescalingMode bicubicRescaling
+        int colorLUTResolution, CameraSettings.FinalBlendMode finalBlendMode, bool enablePostFX, 
+        CameraBufferSettings.BicubicRescalingMode bicubicRescaling, CameraBufferSettings.FXAA fxaa
     )
     {
         this.context = context;
@@ -109,6 +122,7 @@ public partial class PostFXStack
         this.finalBlendMode = finalBlendMode;
         this.enablePostFX = enablePostFX;
         this.bicubicRescaling = bicubicRescaling;
+        this.fxaa = fxaa;
         ApplySceneViewState();
     }
 
@@ -117,12 +131,12 @@ public partial class PostFXStack
 
         if (DoBloom(sourceId))
         {
-            DoColorGradingAndToneMapping(bloomResultId);
+            DoFinal(bloomResultId);
             buffer.ReleaseTemporaryRT(bloomResultId);
         }
         else
         {
-            DoColorGradingAndToneMapping(sourceId);
+            DoFinal(sourceId);
         }
         
         context.ExecuteCommandBuffer(buffer);
@@ -242,7 +256,7 @@ public partial class PostFXStack
         return true;
     }
 
-    bool DoColorGradingAndToneMapping(int sourceId)
+    bool DoFinal(int sourceId)
     {
         ConfigColorAdjustments();
         ConfigureWhiteBalance();
@@ -273,7 +287,7 @@ public partial class PostFXStack
             buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                1f / lutWidth, 1f / lutHeight, lutHeight - 1f, 0.0f
             ));
-            DrawFinalWithScale(sourceId, Pass.FinalPass);
+            DrawFinalWithScale(sourceId, Pass.ApplyColorGrading);
             buffer.ReleaseTemporaryRT(colorGradingLUTId);
         }
         else

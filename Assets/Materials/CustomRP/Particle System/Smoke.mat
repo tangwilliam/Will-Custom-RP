@@ -70,7 +70,7 @@ Material:
     - _Cutoff: 0.501
     - _DetailNormalMapScale: 1
     - _Distortion: 1
-    - _DistortionBlend: 0.686
+    - _DistortionBlend: 0.82
     - _DistortionStrength: 0.174
     - _DstBlend: 10
     - _FlipbookBlending: 1

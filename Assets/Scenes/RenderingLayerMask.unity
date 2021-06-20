@@ -434,7 +434,6 @@ GameObject:
   m_Component:
   - component: {fileID: 108829591}
   - component: {fileID: 108829590}
-  - component: {fileID: 108829589}
   - component: {fileID: 108829592}
   m_Layer: 0
   m_Name: Main Camera (1)
@@ -443,14 +442,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &108829589
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108829588}
-  m_Enabled: 1
 --- !u!20 &108829590
 Camera:
   m_ObjectHideFlags: 0
@@ -523,8 +514,13 @@ MonoBehaviour:
   settings:
     renderingLayerMask: 2
     maskLights: 1
-    overridePostFX: 0
+    renderScaleMode: 0
+    renderScale: 1
+    enablePostFX: 1
     postFXSettings: {fileID: 0}
+    allowFXAA: 0
+    copyColor: 0
+    copyDepth: 0
     finalBlendMode:
       source: 1
       destination: 0
@@ -3480,8 +3476,13 @@ MonoBehaviour:
   settings:
     renderingLayerMask: -1
     maskLights: 0
-    overridePostFX: 0
+    renderScaleMode: 0
+    renderScale: 1
+    enablePostFX: 1
     postFXSettings: {fileID: 0}
+    allowFXAA: 0
+    copyColor: 0
+    copyDepth: 0
     finalBlendMode:
       source: 1
       destination: 0

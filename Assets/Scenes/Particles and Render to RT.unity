@@ -206,7 +206,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!199 &38348995
 ParticleSystemRenderer:
   serializedVersion: 6
@@ -7217,10 +7217,11 @@ MonoBehaviour:
   settings:
     renderingLayerMask: -1
     maskLights: 0
-    renderScaleMode: 2
-    renderScale: 0.1
-    enablePostFX: 1
+    renderScaleMode: 1
+    renderScale: 1
+    enablePostFX: 0
     postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
+    allowFXAA: 0
     copyColor: 1
     copyDepth: 1
     finalBlendMode:
@@ -7707,7 +7708,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1830757755
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7727,6 +7728,7 @@ MonoBehaviour:
     renderScale: 1
     enablePostFX: 1
     postFXSettings: {fileID: 11400000, guid: f48946cb264dd194ab66ceee6d99ae63, type: 2}
+    allowFXAA: 0
     copyColor: 1
     copyDepth: 1
     finalBlendMode:

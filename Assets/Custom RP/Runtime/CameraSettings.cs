@@ -27,6 +27,10 @@ public class CameraSettings
 
     public bool enablePostFX = true;
     public PostFXSettings postFXSettings = null;
+
+    [HideInInspector]
+    public bool allowFXAA = false; // 暂时不打算在重构PostFXStack之前增加FXAA
+
     public bool copyColor, copyDepth = false;
 
     [Serializable]
