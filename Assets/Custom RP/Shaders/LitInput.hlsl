@@ -81,7 +81,7 @@ float2 TransformDetailUV (float2 uv) {
 float4 GetDetail( InputConfig c ){
 
 	if(c.useDetail){
-		float4 map = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, c.detailUV);
+		float4 map = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, c.detailUV); // _DetailMap 需要开启Fadeout MipMaps，让一定距离后MipMap可以Fade为一张灰色的图
 		map = map * 2.0 - 1.0;
 		map *= INPUT_PROP(_DetailAlbedo);
 		return map;
@@ -94,8 +94,9 @@ float4 GetBase (InputConfig c ) {
 	float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
 
 	if(c.useDetail){
-		map.rgb = lerp( sqrt(map.rgb), c.details < 0.0 ? 0.0 : 1.0, abs(c.details) * c.detailMask ); // Gamma 的图要在Gamma空间混合才正确。 另注意：c.details范围是(-1,1)
-		map.rgb *= map.rgb;
+		// 注意：c.details范围是(-1,1)。也就是说，当 c.details 等于0 ( detailMap采样值为中灰色 )时不使用c.details的纹理值。这与Unity对贴图的Fadeout MipMaps将贴图Fadeout为中灰度图相配合。CatlikeCoding文中说必须开启Trilinear效果才正确，但笔者在PC平台测试它与Bilinear没有肉眼可见的区别。
+		map.rgb = lerp( sqrt(map.rgb), c.details < 0.0 ? 0.0 : 1.0, abs(c.details) * c.detailMask ); // Gamma 的图要在Gamma空间混合才正确。 
+		map.rgb *= map.rgb; // 伽马校正
 	}
 	float4 color = INPUT_PROP(_BaseColor);
 	return map * color;

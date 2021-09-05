@@ -18,7 +18,7 @@ Shader "Custom RP/Lit"
         [NoScaleOffset]_EmissionMap("Emission Map",2D) = "black" {}
         [HDR]_EmissionColor("Emission Color",Color) = (1.0,1.0,1.0,1.0)
         
-        [Toggle(_DETAIL_MAP)]_DetailMapToggle("Detail Map",Float) = 0
+        [Toggle(_DETAIL_MAP)]_DetailMapToggle("Detail Map  (work with Fadeout MipMaps)",Float) = 0
         _DetailMap("Detail R:Albedo B:Smoothness", 2D) = "linearGrey" {}
         _DetailAlbedo("Detail Albedo", Range(0,1)) = 0.5
         _DetailSmoothness("Detail Smoothness", Range(0,1)) = 0.5
