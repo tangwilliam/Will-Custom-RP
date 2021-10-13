@@ -1,0 +1,27 @@
+RP Features
+
+-----------------------------------------------------------
+Supports:
+
+- RenderingLayerMask for renderers. Distinguish with Layers for logic and physics.
+
+- DynamicBatching.
+- GPUInstancing.
+- SRPBatching.
+- LOD for GameObject.
+
+- LightsPerObject. Up to 8 lights for each gameObject. 
+- Realtime Directional Lights Shadowmap, up to 4 Cascades.
+- Realtime Point / Spot lights Shadows.
+- PCF Soft Realtime Directional / Point / Spot Shadows.
+- Baking Lights: ShadowMask.
+
+- Detailmap.
+
+- PostFX Effects.
+- Bloom, ToneMapping, Color Adjustments 
+- Color LUT for PostFX.
+- Depth Texture 
+- Grab Opaque final Color Texture
+
+- Multi Cameras split viewport.

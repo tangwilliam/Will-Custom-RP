@@ -133,6 +133,10 @@ float4 LitPassFragment( Varyings input ):SV_TARGET{
     float4 finalColor = 0.0;
     finalColor.rgb = lighting;
 
+#if defined(_EMISSION_MAP)
+    config.useEmission = true;
+#endif
+
     finalColor.rgb += GetEmission(config);
     finalColor.a = GetFinalAlpha( surface.alpha );
 

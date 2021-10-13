@@ -15,7 +15,9 @@ Shader "Custom RP/Lit"
 		_NormalScale("Normal Scale", Range(0, 1)) = 1
         [Toggle(_MASK_MAP)]_MaskMapToggle("Mask Map",Float) = 0
         [NoScaleOffset]_MaskMap("Mask, R:Metallic G:Occlusion B:Detail A:Smoothness", 2D) = "white" {}
-        [NoScaleOffset]_EmissionMap("Emission Map",2D) = "black" {}
+
+        [Toggle(_EMISSION_MAP)]_EmissionMapToggle("Emission Map",Float) = 0
+        [NoScaleOffset]_EmissionMap("EmissionMap (RGB)",2D) = "black" {}
         [HDR]_EmissionColor("Emission Color",Color) = (1.0,1.0,1.0,1.0)
         
         [Toggle(_DETAIL_MAP)]_DetailMapToggle("Detail Map  (work with Fadeout MipMaps)",Float) = 0
@@ -66,6 +68,7 @@ Shader "Custom RP/Lit"
             #pragma shader_feature _RECEIVE_SHADOWS
             #pragma shader_feature _NORMAL_MAP
             #pragma shader_feature _MASK_MAP
+            #pragma shader_feature _EMISSION_MAP
             #pragma shader_feature _DETAIL_MAP
 			#pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER

@@ -48,6 +48,7 @@ struct InputConfig{
 
 	bool useMask;
 	bool useDetail;
+	bool useEmission;
 
 }; // 注意分号不能丢
 
@@ -64,6 +65,7 @@ InputConfig GetInputConfig( float4 positionSS, float2 baseUV, float2 detailUV = 
 	c.detailMask = detailMask;
 	c.useMask = false;
 	c.useDetail = false;
+	c.useEmission = false;
 	return c;
 }
 
@@ -139,9 +141,14 @@ float GetFresnel () {
 }
 
 float3 GetEmission(InputConfig c){
-    float4 map = SAMPLE_TEXTURE2D(_EmissionMap, sampler_BaseMap, c.baseUV);
-    float4 color = INPUT_PROP(_EmissionColor);
-    return map.rgb * color.rgb;
+	if(c.useEmission){
+		float4 map = SAMPLE_TEXTURE2D(_EmissionMap, sampler_BaseMap, c.baseUV);
+		float4 color = INPUT_PROP(_EmissionColor);
+		return map.rgb * color.rgb;
+	}else{
+		return 0.0;
+	}
+    
 }
 
 float3 GetNormalTS (InputConfig c) {
